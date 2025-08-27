@@ -5,10 +5,12 @@
 
 // studentwork.cpp
 // Analyzes a record in a CPU trace file.
-// Author: <your name here>
+// Author: Marcello Palucci
 
 #include "trace.h"
 #include <assert.h>
+#include <vector>
+#include <algorithm>
 // You may include any other standard C or C++ headers you need here,
 // e.g. #include <vector> or #include <algorithm>.
 // Make sure this compiles on the reference machine!
@@ -53,6 +55,12 @@ uint64_t stat_num_cycle = 0;
  */
 uint64_t stat_unique_pc = 0;
 
+/**
+ * Vector that stores the unique pc's to check for copies before
+ * incrementing stat_unique_pc
+ */
+std::vector<uint64_t> unique_pc_vector;
+
 // ------------------------------------------------------------------------- //
 // You must implement the body of the analyze_trace_record() function below. //
 // Do not modify its return type or argument type.                           //
@@ -75,14 +83,43 @@ void analyze_trace_record(TraceRec *t) {
 
     // TODO: Task 1: Quantify the mix of the dynamic instruction stream.
     // Update stat_optype_dyn according to the trace record t.
-
+    
+    //need to check if the optype is within the bounds
+    if (t->optype >= 0 && t->optype < NUM_OP_TYPES){
+        stat_optype_dyn[t->optype]++;
+    }
+        
     // TODO: Task 2: Estimate the overall CPI using a simple CPI model in which
     // the CPI for each category of instructions is provided.
     // Update stat_num_cycle according to the trace record t.
+    switch (t->optype){
+        case 0:
+            stat_num_cycle += 1;
+            break;
+        case 1:
+            stat_num_cycle += 2;
+            break;
+        case 2:
+            stat_num_cycle += 2;
+            break;
+        case 3:
+            stat_num_cycle += 3;
+            break;
+        case 4: 
+            stat_num_cycle += 1;
+            break;
+        default:
+            stat_num_cycle += 0;
+            break;
+    }
 
     // TODO: Task 3: Estimate the instruction footprint by counting the number
     // of unique PCs in the benchmark trace.
     // Update stat_unique_pc according to the trace record t.
-
+    int count =  std::count(unique_pc_vector.begin(), unique_pc_vector.end(), t->inst_addr);
+    if (count == 0) {
+        stat_unique_pc++;
+        unique_pc_vector.push_back(t->inst_addr);
+    }
     // Make sure you DO NOT update stat_num_inst.
 }
